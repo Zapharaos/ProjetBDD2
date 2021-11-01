@@ -578,22 +578,22 @@ INSERT INTO ingredient_quality VALUES ( 43, 4, 3.5);
 -- quantités non représentatives, elles sont aléatoires
 
     -- pour idRecipe 1
-INSERT INTO ingredient_quality VALUES ( 1, 1, 1113);
-INSERT INTO ingredient_quality VALUES ( 1, 2, 5);
-INSERT INTO ingredient_quality VALUES ( 1, 3, 10);
-INSERT INTO ingredient_quality VALUES ( 1, 4, 84);
+INSERT INTO recipe_quality VALUES ( 1, 1, 1113);
+INSERT INTO recipe_quality VALUES ( 1, 2, 5);
+INSERT INTO recipe_quality VALUES ( 1, 3, 10);
+INSERT INTO recipe_quality VALUES ( 1, 4, 84);
 
     -- pour idRecipe 2
-INSERT INTO ingredient_quality VALUES ( 2, 1, 1309);
-INSERT INTO ingredient_quality VALUES ( 2, 2, 12);
-INSERT INTO ingredient_quality VALUES ( 2, 3, 46);
-INSERT INTO ingredient_quality VALUES ( 2, 4, 49);
+INSERT INTO recipe_quality VALUES ( 2, 1, 1309);
+INSERT INTO recipe_quality VALUES ( 2, 2, 12);
+INSERT INTO recipe_quality VALUES ( 2, 3, 46);
+INSERT INTO recipe_quality VALUES ( 2, 4, 49);
 
     -- pour idRecipe 3
-INSERT INTO ingredient_quality VALUES ( 3, 1, 618);
-INSERT INTO ingredient_quality VALUES ( 3, 2, 14);
-INSERT INTO ingredient_quality VALUES ( 3, 3, 73);
-INSERT INTO ingredient_quality VALUES ( 3, 4, 44);
+INSERT INTO recipe_quality VALUES ( 3, 1, 618);
+INSERT INTO recipe_quality VALUES ( 3, 2, 14);
+INSERT INTO recipe_quality VALUES ( 3, 3, 73);
+INSERT INTO recipe_quality VALUES ( 3, 4, 44);
 
 -- PLANNING (idPlanning, namePlanning, descPlanning, startPlanning, endPlanning)
 
@@ -604,16 +604,16 @@ INSERT INTO planning VALUES (NULL, 'Semaine 03/01/2022', '', NULL, NULL);
 -- RECIPE PLANNING (idPlanning, idRecipe, dateMeal, nbPersMeal)
 
     -- pour idPlanning 1
-INSERT INTO planning_recipe VALUES (1, 1, TO_TIMESTAMP('2022/01/08 19:30:00', 'yyyy/mm/dd hh24:mi:ss'), 4)
-INSERT INTO planning_recipe VALUES (1, 2, TO_TIMESTAMP('2022/01/08 15:00:00', 'yyyy/mm/dd hh24:mi:ss'), 12)
-INSERT INTO planning_recipe VALUES (1, 3, TO_TIMESTAMP('2022/01/09 12:00:00', 'yyyy/mm/dd hh24:mi:ss'), 8)
+INSERT INTO planning_recipe VALUES (1, 1, TO_TIMESTAMP('2022/01/08 19:30:00', 'yyyy/mm/dd hh24:mi:ss'), 4);
+INSERT INTO planning_recipe VALUES (1, 2, TO_TIMESTAMP('2022/01/08 15:00:00', 'yyyy/mm/dd hh24:mi:ss'), 12);
+INSERT INTO planning_recipe VALUES (1, 3, TO_TIMESTAMP('2022/01/09 12:00:00', 'yyyy/mm/dd hh24:mi:ss'), 8);
 
     -- pour idPlanning 2
-INSERT INTO planning_recipe VALUES (2, 2, CURRENT_TIMESTAMP+4, 3)
+INSERT INTO planning_recipe VALUES (2, 2, CURRENT_TIMESTAMP+4, 3);
 
     -- pour idPlanning 3
-INSERT INTO planning_recipe VALUES (3, 1, TO_TIMESTAMP('2022/01/03 19:30:00', 'yyyy/mm/dd hh24:mi:ss'), 4)
-INSERT INTO planning_recipe VALUES (3, 3, TO_TIMESTAMP('2022/01/06 12:00:00', 'yyyy/mm/dd hh24:mi:ss'), 4)
+INSERT INTO planning_recipe VALUES (3, 1, TO_TIMESTAMP('2022/01/03 19:30:00', 'yyyy/mm/dd hh24:mi:ss'), 4);
+INSERT INTO planning_recipe VALUES (3, 3, TO_TIMESTAMP('2022/01/06 12:00:00', 'yyyy/mm/dd hh24:mi:ss'), 4);
 
 -- USERS PLANNING (idUsers, idPlanning)
 

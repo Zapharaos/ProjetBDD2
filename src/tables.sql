@@ -108,7 +108,7 @@ CREATE TABLE step (
   descStep CLOB,
   idRecipe INTEGER,
   CONSTRAINT PK_step PRIMARY KEY (idStep),	-- Clé primaire
-  CONSTRAINT FK_step_idRecipe FOREIGN KEY (idRecipe) REFERENCES recipe ON DELETE CASCADE -- FK
+  CONSTRAINT FK_step_idRecipe FOREIGN KEY (idRecipe) REFERENCES recipe ON DELETE CASCADE, -- FK
   CONSTRAINT CK_step_weigth CHECK (weigth >= 0)	-- Check weigth
 );
 
@@ -128,7 +128,7 @@ CREATE TABLE step_duration (
   CONSTRAINT PK_stepDuration PRIMARY KEY (idStep, idDuration),	-- Clé primaire
   CONSTRAINT FK_stepDuration_idStep FOREIGN KEY (idStep) REFERENCES step ON DELETE CASCADE, -- FK
   CONSTRAINT FK_stepDuration_idDuration FOREIGN KEY (idDuration) REFERENCES duration ON DELETE CASCADE, -- FK
-  CONSTRAINT CK_stepDuration_duration CHECK (duration >= 0) -- Check durée
+  CONSTRAINT CK_stepDuration_duration CHECK (durStep >= 0) -- Check durée
 );
 
 -- Durée d’une recette
@@ -139,7 +139,7 @@ CREATE TABLE recipe_duration (
   CONSTRAINT PK_recipeDuration PRIMARY KEY (idRecipe, idDuration),	-- Clé primaire
   CONSTRAINT FK_recipeDuration_idRecipe FOREIGN KEY (idRecipe) REFERENCES step ON DELETE CASCADE, -- FK
   CONSTRAINT FK_recipeDuration_idDuration FOREIGN KEY (idDuration) REFERENCES duration ON DELETE CASCADE, -- FK
-  CONSTRAINT CK_recipeDuration_duration CHECK (duration >= 0) -- Check durée
+  CONSTRAINT CK_recipeDuration_duration CHECK (durRecipe >= 0) -- Check durée
 );
 
 -- Qualité diététique

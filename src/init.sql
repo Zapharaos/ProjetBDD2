@@ -2,5 +2,7 @@
 @sequences
 @dc_id
 @dc
--- @test_dynamic_constraints
 @insert
+-- @test_dynamic_constraints
+-- @dropsequences
+-- @droptables

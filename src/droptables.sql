@@ -12,6 +12,7 @@ DROP TABLE planning;
 DROP TABLE recipe_quality;
 DROP TABLE ingredient_quality;
 DROP TABLE quality;
+DROP TABLE recipe_duration;
 DROP TABLE step_duration;
 DROP TABLE duration;
 DROP TABLE step;

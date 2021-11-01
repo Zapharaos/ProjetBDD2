@@ -1,0 +1,11 @@
+DROP SEQUENCE idUsers_sequence;
+DROP SEQUENCE idIngredient_sequence;
+DROP SEQUENCE idRecipe_sequence;
+DROP SEQUENCE idMedia_sequence;
+DROP SEQUENCE idCategory_sequence;
+DROP SEQUENCE idStep_sequence;
+DROP SEQUENCE idDuration_sequence;
+DROP SEQUENCE idQuality_sequence;
+DROP SEQUENCE idShopping_sequence;
+DROP SEQUENCE idPlanning_sequence;
+DROP SEQUENCE idDiet_sequence;
