@@ -121,15 +121,9 @@ INSERT INTO stock VALUES (3, 17, 793);
 -- RECIPE (idRecipe, nameRecipe, author, descRecipe, difficulty, price, nbPers)
 -- voir bibliographie du rapport pour les références
 
-INSERT INTO recipe VALUES (NULL, 'Camembert rôti au miel', 'silverswan131', '', 'Facile', 1, 2);
-INSERT INTO recipe VALUES (NULL, 'Pain d épices', 'silverswan131', '', 'Facile', 2.5, 6);
-INSERT INTO recipe VALUES (NULL, 'Béchamel rapide et facile', 'beforesunset', '', 'Tres facile', 1, 4);
-
--- USERS RECIPE (idUsers, idRecipe)
-
-INSERT INTO users_recipe VALUES (1, 1);
-INSERT INTO users_recipe VALUES (1, 2);
-INSERT INTO users_recipe VALUES (3, 3);
+INSERT INTO recipe VALUES (NULL, 'Camembert rôti au miel', 'silverswan131', '', 'Facile', 1, 2, 1);
+INSERT INTO recipe VALUES (NULL, 'Pain d épices', 'silverswan131', '', 'Facile', 2.5, 6, 2);
+INSERT INTO recipe VALUES (NULL, 'Béchamel rapide et facile', 'beforesunset', '', 'Tres facile', 1, 4, 3);
 
 -- MEDIA RECIPE (idMedia, nameMedia, descMedia, media, idRecipe)
 -- uniquement des images dans cet exemple

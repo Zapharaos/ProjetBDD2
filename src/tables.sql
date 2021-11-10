@@ -44,19 +44,12 @@ CREATE TABLE recipe (
   difficulty VARCHAR2(32) NOT NULL,
   price DECIMAL NOT NULL,
   nbPers INTEGER NOT NULL,
+  idUsers INTEGER,
   CONSTRAINT PK_recipe PRIMARY KEY (idRecipe), -- PK
+  CONSTRAINT FK_recipe_idUsers FOREIGN KEY (idUsers) REFERENCES users ON DELETE CASCADE, -- FK
   CONSTRAINT CK_recipe_difficulty CHECK (difficulty IN ('Tres facile','Facile','Standard','Difficile')), -- Check difficulty
   CONSTRAINT CK_recipe_price CHECK (price between 1 and 5), -- Check price
   CONSTRAINT CK_recipe_nb CHECK (nbPers > 0)	-- Check nbPers
-);
-
--- Recettes d’un utilisateur
-CREATE TABLE users_recipe (
-  idUsers INTEGER,
-  idRecipe INTEGER,
-  CONSTRAINT PK_usersRecipe PRIMARY KEY (idUsers, idRecipe),	-- Clé primaire
-  CONSTRAINT FK_usersRecipe_idUsers	FOREIGN KEY (idUsers) REFERENCES users ON DELETE CASCADE, -- FK
-  CONSTRAINT FK_usersRecipe_idRecipe FOREIGN KEY (idRecipe) REFERENCES recipe ON DELETE CASCADE -- FK
 );
 
 -- Illustration
