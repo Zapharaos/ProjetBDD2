@@ -1,60 +1,91 @@
--- recipe with less than 200 calories per person, where all the ingredients are gluten free and the recipe is stored in a planning
 -- Les recettes qui ont moins de 200 calories par personne, dont tous les ingrédients sont sans gluten et qui apparaissent sur le planning d’un utilisateur.
 
--- the most stored recipe in the plannings
--- La recette la plus souvent présente dans des plannings d’utilisateurs.
+SELECT R.idRecipe
+FROM RECIPE R
+INNER JOIN RECIPE_QUALITY RQ on R.IDRECIPE = RQ.IDRECIPE
+INNER JOIN RECIPE_INGREDIENT RI ON RI.idRecipe = R.idRecipe
+INNER JOIN INGREDIENT I ON I.idIngredient = RI.idIngredient
+INNER JOIN INGREDIENT_DIET D ON D.idIngredient = I.idIngredient
+INNER JOIN DIET D2 ON D2.idDiet = D.idDiet
+WHERE
+    RQ.IDQUALITY = 1 AND
+    RQ.QTYQUALITY / R.NBPERS < 200 AND
+    D2.idDiet = 4 AND
+    EXISTS(SELECT PLANNING_RECIPE.idRecipe FROM PLANNING_RECIPE WHERE PLANNING_RECIPE.idRecipe = R.idRecipe)
+;
 
--- for each ingredient, the number of recipes where he is used and its number of categories
+-- La recette la plus souvent présente dans des plannings d’utilisateurs.
+-- ne prend pas en compte la possibilite d avoir plusieurs recettes avec le meme nombre d occurrence
+
+SELECT
+       idRecipe,
+       nbOccurrence
+FROM
+     (
+         SELECT
+             idRecipe,
+             count(*) as nbOccurrence
+         FROM PLANNING_RECIPE
+         GROUP BY idRecipe
+         ORDER BY count(*) DESC
+     )
+WHERE ROWNUM = 1;
+
 -- Pour chaque ingrédient, nombre de recette et nombre de catégorie dans lesquelles il apparaît.
 
 SELECT
-    idIngredient,
-    COUNT ( SELECT idIngredient
-            FROM recipe_ingredient
-            WHERE recipe_ingredient.idIngredient = idIngredient)
-        AS nbRecipes,
-    COUNT ( SELECT idIngredient
-            FROM ingredient_diet
-            WHERE ingredient_diet.idIngredient = idIngredient)
-        AS nbDiets
-FROM ingredient;
+    INGREDIENT.idIngredient,
+    COALESCE(nbR.counter, 0) AS nbR,
+    COALESCE(nbC.counter, 0) AS nbC
+FROM INGREDIENT
+LEFT OUTER JOIN (
+     SELECT idIngredient, count(*) AS counter
+     FROM RECIPE_INGREDIENT
+     GROUP BY idIngredient
+) nbR ON INGREDIENT.idIngredient = nbR.idIngredient
+LEFT OUTER JOIN (
+    SELECT idIngredient, count(*) AS counter
+    FROM INGREDIENT_DIET
+    GROUP BY idIngredient
+) nbC ON INGREDIENT.idIngredient = nbC.idIngredient
+ORDER BY INGREDIENT.idIngredient ASC;
 
-
--- users that only created vegie recipes
 -- Les utilisateurs qui n’ont ajouté à la base de données que des recettes végétariennes.
 
 SELECT idUsers
-FROM recipe
-WHERE idRecipe IN (
-    SELECT recipe_ingredient.idRecipe FROM recipe_ingredient WHERE recipe_ingredient.idRecipe = idRecipe
-    AND recipe_ingredient.idIngredient IN (
-        SELECT ingredient.idIngredient FROM ingredient WHERE ingredient.idIngredient = recipe_ingredient.idIngredient
-        AND ingredient.idIngredient IN (
-            SELECT ingredient_diet.idIngredient FROM ingredient_diet WHERE ingredient_diet.idIngredient = ingredient.idIngredient
-            AND ingredient_diet.idDiet IN (
-                SELECT diet.idDiet FROM diet WHERE diet.idDiet = ingredient_diet.idDiet and diet.name LIKE 'Sans gluten'
-            )
-        )))
+FROM RECIPE R
+INNER JOIN RECIPE_INGREDIENT RI ON RI.idRecipe = R.idRecipe
+INNER JOIN INGREDIENT I ON I.idIngredient = RI.idIngredient
+INNER JOIN INGREDIENT_DIET D ON D.idIngredient = I.idIngredient
+WHERE D.idDiet = 1;
 
--- for each user, its login - name - lastName - address - number of recipes created - number of ingredients he possess - number of recipes planned (recipe is in the future !!!)
 -- Pour chaque utilisateur, son login, son nom, son prénom, son adresse, son nombre de recette créé, son nombre d’ingrédients enregistrés, le nombre de recette qu’il a prévu de réaliser (la recette est dans son planning à une date postérieure à la date d’aujourd’hui).
 
 SELECT
-    login,
-    name,
-    lastName,
-    address,
-    COUNT ( SELECT idRecipe
-            FROM recipe
-            WHERE recipe.idUsers = users.idUsers)
-        AS nbRecipesCreated,
-    COUNT ( SELECT idIngredient
-            FROM stock
-            WHERE stock.idUsers = users.idUsers)
-        AS nbIngredientsStock,
-    COUNT ( SELECT idRecipe
-            FROM planning_recipe
-            WHERE dateMeal > SYSDATE AND idPlanning IN (
-                (SELECT idPlanning FROM users_planning WHERE users_planning.idUsers = idUsers)))
-        AS nbRecipesPlanned
-FROM users;
+    users.login,
+    users.name,
+    users.lastName,
+    users.address,
+    COALESCE(nbRc.counter, 0) AS nbRcreated,
+    COALESCE(nbIs.counter, 0) AS nbIstock,
+    COALESCE(nbRp.counter, 0) AS nbRplanned
+FROM users
+LEFT OUTER JOIN (
+    SELECT idUsers, count(*) AS counter
+    FROM RECIPE
+    GROUP BY idUsers
+) nbRc ON users.idUsers  = nbRc.idUsers
+LEFT OUTER JOIN (
+    SELECT idUsers, count(*) AS counter
+    FROM STOCK
+    GROUP BY idUsers
+) nbIs ON users.idUsers = nbIs.idUsers
+LEFT OUTER JOIN (
+    SELECT idUsers, count(*) AS counter
+    FROM USERS_PLANNING
+    INNER JOIN PLANNING P on P.idPlanning = USERS_PLANNING.idPlanning
+    INNER JOIN PLANNING_RECIPE PR on PR.idPlanning = P.idPlanning
+    WHERE PR.dateMeal > SYSDATE
+    GROUP BY idUsers
+) nbRp ON users.idUsers = nbRp.idUsers
+ORDER BY users.idUsers ASC;

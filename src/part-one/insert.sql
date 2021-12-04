@@ -3,6 +3,7 @@
 INSERT INTO users VALUES (NULL, 'silverswan131', 'brad.gibson@example.com', '0cbbe25ca54ceb42e0899422bdf417dadc6865c19b32981af430325ba416351f', 'brad', 'gibson', '9278 new road, kilcoole, waterford, 93027');
 INSERT INTO users VALUES (NULL, 'icecreamketchupbagel', 'john.johnston@example.com', '1becaaef8bdc5da2910202603669a731970f736042366cd74d9938557debeb43', 'john', 'johnston', '3686 Shady Ln Dr');
 INSERT INTO users VALUES (NULL, 'beforesunset', 'leta.barrett@example.com', '6eb161adfa62b9d2d02f0d4acdd2f26daa989026088725c1ba27016c56788b11', 'leta', 'barrett', '6547 Thornridge Cir');
+INSERT INTO users VALUES (NULL, 'veganFR', 'warren.perez@example.com', '6eb161adfa62b9d2d02f0d4acdd2f26daa989026088725c1ba27016c56788b11', 'Warren', 'Perez', '2274 Blossom Hill Rd');
 
 -- INGREDIENT (idIngredient, nameIngredient, unity)
 
@@ -56,6 +57,9 @@ INSERT INTO ingredient VALUES (NULL, 'Sucre brun', 'grammes');
 INSERT INTO ingredient VALUES (NULL, 'Oeuf d oie', 'oeuf(s) d oie');
 INSERT INTO ingredient VALUES (NULL, 'Oeuf d autruche', 'oeuf(s) d autruche');
 INSERT INTO ingredient VALUES (NULL, 'Lait de chamelle', 'grammes');
+
+-- autres, pour requetes partie 2 vegetarien
+INSERT INTO ingredient VALUES (NULL, 'vegetarien', 'grammes');
 
 -- STOCK (idUsers, idIngredient, qtyAvailable)
 -- nombre d'ingrédients par users random, ingrédient random, quantité random
@@ -124,6 +128,7 @@ INSERT INTO stock VALUES (3, 17, 793);
 INSERT INTO recipe VALUES (NULL, 'Camembert rôti au miel', 'silverswan131', '', 'Facile', 1, 2, 1);
 INSERT INTO recipe VALUES (NULL, 'Pain d épices', 'silverswan131', '', 'Facile', 2.5, 6, 2);
 INSERT INTO recipe VALUES (NULL, 'Béchamel rapide et facile', 'beforesunset', '', 'Tres facile', 1, 4, 3);
+INSERT INTO recipe VALUES (NULL, 'Vegetarien', 'vegan67', '', 'Tres facile', 1, 1, 4);
 
 -- MEDIA RECIPE (idMedia, nameMedia, descMedia, media, idRecipe)
 -- uniquement des images dans cet exemple
@@ -235,6 +240,9 @@ INSERT INTO ingredient_category VALUES (41, 18);
 INSERT INTO ingredient_category VALUES (42, 18);
 INSERT INTO ingredient_category VALUES (43, 19);
 
+    -- pour ingredients de partie 2 requete vegetarien
+INSERT INTO ingredient_category VALUES (44, 1);
+
 -- RECIPE INGREDIENT (idRecipe, idIngredient, quantity, idCategory)
 
     -- pour idRecipe 1
@@ -269,6 +277,9 @@ INSERT INTO recipe_ingredient VALUES (3, 17, 0.5, 11);
 INSERT INTO recipe_ingredient VALUES (3, 18, 0.5, 12);
 -- la quantité du dernier inséré correspond à une pincée
 INSERT INTO recipe_ingredient VALUES (3, 19, 20, 14);
+
+    -- pour idRecipe 4 : partie 2 requete vegetarien, random numbers
+INSERT INTO recipe_ingredient values (4, 44, 1, 1);
 
 -- STEP RECIPE (idRecipe, weigth, nameStep, descStep, idRecipe)
 
@@ -618,7 +629,7 @@ INSERT INTO users_planning VALUES (3, 3);
 -- USERS OLD PLANNING (idUsers, idPlanning)
 
 INSERT INTO users_old_planning VALUES (2, 3);
-INSERT INTO users_planning VALUES (3, 1);
+INSERT INTO users_old_planning VALUES (3, 1);
 
 -- SHOPPING (idShopping, nameShopping, descShopping, startShopping, endShopping)
 
@@ -655,7 +666,11 @@ INSERT INTO diet VALUES (NULL, 'Sans gluten');
 INSERT INTO diet VALUES (NULL, 'Sans lactose');
 
 -- INGEDIENT DIET (idIngredient, idDiet)
--- pas d'ingrédient Vegetarisme ou Pesco Vegetarisme
+
+    -- Végétarisme (juste pour la partie 2 requete vegetarien)
+INSERT INTO ingredient_diet VALUES(44, 1);
+
+    -- Pesco Vegetarisme (pas insere)
 
     -- Veganisme
 INSERT INTO ingredient_diet VALUES(1, 3);
