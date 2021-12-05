@@ -52,12 +52,23 @@ ORDER BY INGREDIENT.idIngredient ASC;
 
 -- Les utilisateurs qui n’ont ajouté à la base de données que des recettes végétariennes.
 
-SELECT idUsers
+SELECT DISTINCT U.idUsers
+FROM USERS U
+WHERE EXISTS (
+    SELECT *
+    FROM RECIPE R
+    INNER JOIN RECIPE_INGREDIENT RI ON RI.idRecipe = R.idRecipe
+    INNER JOIN INGREDIENT I ON I.idIngredient = RI.idIngredient
+    INNER JOIN INGREDIENT_DIET D ON D.IDINGREDIENT = I.IDINGREDIENT
+    WHERE D.IDDIET = 4 AND R.idUsers = U.idUsers
+);
+
+SELECT DISTINCT R.idUsers
 FROM RECIPE R
-INNER JOIN RECIPE_INGREDIENT RI ON RI.idRecipe = R.idRecipe
-INNER JOIN INGREDIENT I ON I.idIngredient = RI.idIngredient
-INNER JOIN INGREDIENT_DIET D ON D.idIngredient = I.idIngredient
-WHERE D.idDiet = 1;
+    INNER JOIN RECIPE_INGREDIENT RI ON RI.idRecipe = R.idRecipe
+    INNER JOIN INGREDIENT I ON I.idIngredient = RI.idIngredient
+    INNER JOIN INGREDIENT_DIET D ON D.idIngredient = I.idIngredient
+WHERE D.idDiet = 4;
 
 -- Pour chaque utilisateur, son login, son nom, son prénom, son adresse, son nombre de recette créé, son nombre d’ingrédients enregistrés, le nombre de recette qu’il a prévu de réaliser (la recette est dans son planning à une date postérieure à la date d’aujourd’hui).
 

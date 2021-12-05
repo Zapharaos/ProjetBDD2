@@ -60,6 +60,7 @@ INSERT INTO ingredient VALUES (NULL, 'Lait de chamelle', 'grammes');
 
 -- autres, pour requetes partie 2 vegetarien
 INSERT INTO ingredient VALUES (NULL, 'vegetarien', 'grammes');
+INSERT INTO ingredient VALUES (NULL, 'vegetarien2', 'grammes');
 
 -- STOCK (idUsers, idIngredient, qtyAvailable)
 -- nombre d'ingrédients par users random, ingrédient random, quantité random
@@ -242,6 +243,7 @@ INSERT INTO ingredient_category VALUES (43, 19);
 
     -- pour ingredients de partie 2 requete vegetarien
 INSERT INTO ingredient_category VALUES (44, 1);
+INSERT INTO ingredient_category VALUES (45, 1);
 
 -- RECIPE INGREDIENT (idRecipe, idIngredient, quantity, idCategory)
 
@@ -280,6 +282,7 @@ INSERT INTO recipe_ingredient VALUES (3, 19, 20, 14);
 
     -- pour idRecipe 4 : partie 2 requete vegetarien, random numbers
 INSERT INTO recipe_ingredient values (4, 44, 1, 1);
+INSERT INTO recipe_ingredient values (4, 45, 1, 1);
 
 -- STEP RECIPE (idRecipe, weigth, nameStep, descStep, idRecipe)
 
@@ -669,6 +672,7 @@ INSERT INTO diet VALUES (NULL, 'Sans lactose');
 
     -- Végétarisme (juste pour la partie 2 requete vegetarien)
 INSERT INTO ingredient_diet VALUES(44, 1);
+INSERT INTO ingredient_diet VALUES(45, 1);
 
     -- Pesco Vegetarisme (pas insere)
 
