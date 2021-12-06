@@ -10,14 +10,16 @@ BEGIN
     BEGIN
         SELECT count(*)
         INTO nbI
-        FROM RECIPE_INGREDIENT
-        WHERE idRecipe = :NEW.idRecipe;
+        FROM RECIPE_INGREDIENT RI
+        WHERE RI.idRecipe = :NEW.idRecipe;
+
         IF nbI >= 20 THEN
             raise_application_error(-20001, 'Pas plus de 20 ingrédients par recettes.');
         END IF;
     END;
 END;
 /
+SHOW ERRORS TRIGGER nbIngredients_recipe ;
 
 -- La liste des ingrédients à acheter ne peut pas être générée plus d’un mois à l’avance.
 -- pour simplifier (par rapport aux insert déjà fait), on testera pour 6 mois
@@ -33,35 +35,51 @@ BEGIN
     END IF;
 END;
 /
+SHOW ERRORS TRIGGER date_shopping ;
 
 -- La durée d’une recette est égale au moins au minimum de la durée de ses étapes.
--- update value au lieu de raise ?
+-- il faudrait egalement placer un trigger lors de l'edition des durées d'une recette, mais je ne vais pas le faire par soucis de simplicité. En effet, j'estime que ce trigger est suffisant, de plus, la logique est la même
 
 CREATE OR REPLACE TRIGGER duration_recipe
     BEFORE INSERT OR UPDATE
-    ON STEP
+    ON STEP_DURATION
     FOR EACH ROW
 BEGIN
     DECLARE
         timeR_v RECIPE_DURATION.durRecipe%TYPE;
         timeS_v STEP_DURATION.durStep%TYPE;
+        idR_v RECIPE.idRecipe%TYPE;
+        count_v INTEGER;
     BEGIN
 
-        SELECT durRecipe
-        INTO timeR_v
-        FROM RECIPE_DURATION
-        WHERE idRecipe = :NEW.idRecipe
-          AND idDuration = 4;
+        SELECT RD.idRecipe
+        INTO idR_v
+        FROM RECIPE_DURATION RD
+                 INNER JOIN RECIPE R on R.IDRECIPE = RD.IDRECIPE
+                 INNER JOIN STEP S on S.IDRECIPE = R.IDRECIPE
+        WHERE S.idStep = :NEW.idStep;
 
-        SELECT SUM(durStep)
-        INTO timeS_v
-        FROM STEP_DURATION
-        WHERE idRecipe = :NEW.idRecipe
-          AND idDuration != 4;
+        SELECT count(*) INTO count_v FROM STEP_DURATION WHERE idStep = :NEW.idStep;
+
+        IF(count_v = 0) THEN
+            timeS_v := :NEW.durStep;
+        ELSE
+            SELECT SUM(durStep)
+            INTO timeS_v
+            FROM STEP_DURATION SD
+            WHERE SD.idStep = :NEW.idStep
+              AND SD.idDuration != 4;
+        end if;
+
+        SELECT RD.durRecipe
+        INTO timeR_v
+        FROM RECIPE_DURATION RD
+        WHERE RD.idRecipe = idR_v AND RD.idDuration = 4;
 
         IF timeR_v < timeS_v THEN
-            raise_application_error(-20003,
-                                    'La durée d’une recette est égale au moins au minimum de la durée de ses étapes.');
+            UPDATE RECIPE_DURATION SET durRecipe = timeS_v WHERE idRecipe = idR_v AND idDuration = 4;
+            /*raise_application_error(-20003,
+                                    'La durée d’une recette est égale au moins au minimum de la durée de ses étapes.');*/
         END IF;
 
     EXCEPTION
@@ -69,9 +87,13 @@ BEGIN
     END;
 END;
 /
+SHOW ERRORS TRIGGER duration_recipe ;
 
 -- Le nombre de calorie d’une recette est similaire à celui de la somme des calories de ses ingrédients (+/- 20%).
--- update value au lieu de raise ?
+-- mais les valeurs nutritionnelles peuvent changer à :
+-- l'ajout d'un ingrédient (recipe_ingredient) ; la modification des qualités de la recette (recipe_quality) ; la modification des qualités d'un ingrédient (ingredient_quality)
+-- ici, on partira du principe qu'un utilisateur ne peut pas renseigner les qualités globales d'une recette et quelles sont simplement recalculées à l'ajout d'un ingrédient, mais aussi que le nombre de calorie d'un ingredient est stable et ne devrait pas changer, pour 100 grammes
+-- techniquement, il faudrait tout de même réaliser ces triggers mais par soucis de simplicité, j'estime que le trigger que j'ai réalisé est suffisant, la logique est plus ou moins la même pour ceux (les autres) que j'ai suggéré
 
 CREATE OR REPLACE TRIGGER calories_recipe
     BEFORE INSERT OR UPDATE
@@ -89,18 +111,23 @@ BEGIN
         WHERE idRecipe = :NEW.idRecipe
           AND idQuality = 1;
 
-        SELECT SUM(qtyQuality)
+        SELECT SUM(IQ.qtyQuality * RI.quantity)
         INTO quantityI_v
         FROM INGREDIENT_QUALITY IQ
-                 INNER JOIN INGREDIENT I on IQ.IDINGREDIENT = I.IDINGREDIENT
+                 INNER JOIN INGREDIENT I on I.IDINGREDIENT = IQ.IDINGREDIENT
                  INNER JOIN RECIPE_INGREDIENT RI on RI.IDINGREDIENT = I.IDINGREDIENT
-        WHERE idRecipe = :NEW.idRecipe
-          AND idQuality = 1;
+        WHERE RI.idRecipe = :NEW.idRecipe
+          AND IQ.idQuality = 1;
 
-        IF quantityR_v < quantityI_v * 0.8 OR quantityR_v > quantityI_v * 1.2 OR quantityI_v < quantityR_v * 0.8 OR
-           quantityI_v > quantityR_v * 1.2 THEN
-            raise_application_error(-20004,
-                                    'Le nombre de calorie d’une recette est similaire à celui de la somme des calories de ses ingrédients (+/- 20%).');
+        IF quantityR_v < quantityI_v * 0.8 THEN
+            UPDATE RECIPE_QUALITY SET qtyQuality = quantityI_v * 0.8 WHERE idRecipe = :NEW.idRecipe AND idQuality = 1;
+            -- raise_application_error(-20004, 'Le nombre de calorie d’une recette est similaire à celui de la somme des calories de ses ingrédients (+/- 20%).');
+        ELSIF quantityR_v > quantityI_v * 1.2 THEN
+            UPDATE RECIPE_QUALITY SET qtyQuality = quantityI_v * 1.2 WHERE idRecipe = :NEW.idRecipe AND idQuality = 1;
+            -- raise_application_error(-20004, 'Le nombre de calorie d’une recette est similaire à celui de la somme des calories de ses ingrédients (+/- 20%).');
+        ELSIF quantityI_v < quantityR_v * 0.8 OR quantityI_v > quantityR_v * 1.2 THEN
+            UPDATE RECIPE_QUALITY SET qtyQuality = quantityI_v WHERE idRecipe = :NEW.idRecipe AND idQuality = 1;
+            -- raise_application_error(-20004, 'Le nombre de calorie d’une recette est similaire à celui de la somme des calories de ses ingrédients (+/- 20%).');
         END IF;
 
     EXCEPTION
@@ -108,11 +135,12 @@ BEGIN
     END;
 END;
 /
+SHOW ERRORS TRIGGER calories_recipe ;
 
 -- Les plannings de recettes et la liste des courses sont archivés lorsqu’ils sont supprimés ou une fois les dates associées dépassées.
 -- exception deja supprimé ? + check time
 
-CREATE OR REPLACE TRIGGER remove_planning
+/*CREATE OR REPLACE TRIGGER remove_planning
     BEFORE DELETE
     ON USERS_PLANNING
     FOR EACH ROW
@@ -121,19 +149,23 @@ BEGIN
         idS SHOPPING.idShopping%TYPE;
     BEGIN
 
-        SELECT SP.idShopping INTO idS
+        SELECT SP.idShopping
+        INTO idS
         FROM SHOPPING_PLANNING SP
                  INNER JOIN SHOPPING S on S.IDSHOPPING = SP.IDSHOPPING
                  INNER JOIN USERS_SHOPPING US on US.IDSHOPPING = S.IDSHOPPING
-        WHERE SP.idPlanning = idPlanning AND US.idUsers = idUsers;
+        WHERE SP.idPlanning = idPlanning
+          AND US.idUsers = idUsers;
 
         INSERT INTO USERS_OLD_PLANNING VALUES (idUsers, idPlanning);
         INSERT INTO USERS_OLD_SHOPPING VALUES (idUsers, idShopping);
     END;
 END;
 /
+SHOW ERRORS TRIGGER remove_planning ;*/
 
-CREATE OR REPLACE TRIGGER remove_planning
+/*
+CREATE OR REPLACE TRIGGER remove_shopping
     BEFORE DELETE
     ON USERS_SHOPPING
     FOR EACH ROW
@@ -152,4 +184,4 @@ BEGIN
         INSERT INTO USERS_OLD_PLANNING VALUES (idUsers, idPlanning);
     END;
 END;
-/
+/*/

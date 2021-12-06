@@ -226,6 +226,7 @@ END;
 
 -- Définir une procédure qui crée une copie de recette où certains ingrédients ont été remplacés par d’autres équivalents et où le nombre de personnes peut-être différent de celui de la recette originale.
 
+/*
 CREATE OR REPLACE PROCEDURE copy_recipe(
     idR RECIPE.idRecipe%TYPE,
     nbP RECIPE.nbPers%TYPE,
@@ -234,3 +235,4 @@ CREATE OR REPLACE PROCEDURE copy_recipe(
 BEGIN
 
 END;
+SHOW ERRORS PROCEDURE copy_recipe ;*/
