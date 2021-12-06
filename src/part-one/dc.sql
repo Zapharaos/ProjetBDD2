@@ -30,7 +30,7 @@ FOR EACH ROW
 BEGIN
     IF (:NEW.dateMeal < (CURRENT_TIMESTAMP - INTERVAL '5' MINUTE))
     THEN
-        RAISE_APPLICATION_ERROR(-20106,'Date de repas trop ancienne');
+        RAISE_APPLICATION_ERROR(-20000,'Date de repas trop ancienne');
     END IF;
 END;
 /

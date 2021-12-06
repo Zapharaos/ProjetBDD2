@@ -25,10 +25,10 @@ END;
 /
 SHOW ERRORS FUNCTION edit_ingredient ;
 
-BEGIN
+/*BEGIN
     dbms_output.put_line(edit_ingredient(1, 1, 2));
 END;
-/
+/*/
 
 -- Définir une fonction qui retourne la liste des ingrédients où la quantité d’ingrédient a été adaptée pour un nombre de personnes différent du nombre de personnes de la recette d’origine.
 
@@ -65,12 +65,10 @@ END;
 /
 SHOW ERRORS FUNCTION edit_recipe ;
 
-BEGIN
+/*BEGIN
     dbms_output.put_line(edit_recipe(2, 3));
 END;
-/
-
--- Définir une procédure qui crée une copie de recette où certains ingrédients ont été remplacés par d’autres équivalents et où le nombre de personnes peut-être différent de celui de la recette originale.
+/*/
 
 -- Définir une fonction qui retourne un booléen si la recette ne contient que des ingrédients valides pour un certain régime (« végétarien », « sans-gluten », …).
 -- pas le plus optimisé j'imagine, j'attends une réponse du prof de TP pour trouver un moyen de verifier que chaque ingredient d'une même recette respecte un certain regime
@@ -111,7 +109,7 @@ END;
 /
 SHOW ERRORS FUNCTION check_diet ;
 
-DECLARE
+/*DECLARE
     dietName_v DIET.nameDiet%TYPE;
     dietID_v   DIET.idDiet%TYPE := 1;
 BEGIN
@@ -122,7 +120,7 @@ BEGIN
         dbms_output.put_line('recette est pas ' || dietName_v);
     END IF;
 END;
-/
+/*/
 
 -- Définir une fonction qui génère une liste d’ingrédients à acheter. La liste d’ingrédient sera générée pour un utilisateur, à partir d’un planning de recette à réaliser, une liste d’ingrédients disponibles et la date estimée des achats.
 -- chaque utilisateur possède une unique liste d'ingrédient disponible, un unique stock, il ne sera logiquement pas renseigné dans les paramètres de cette fonction
@@ -134,21 +132,21 @@ CREATE OR REPLACE FUNCTION create_shopping(
     dateP SHOPPING.startShopping%TYPE
 ) RETURN SHOPPING.idShopping%TYPE
     IS
-    nameP_v  PLANNING.namePlanning%TYPE;
-    descP_v  PLANNING.descPlanning%TYPE;
-    startP_v PLANNING.startPlanning%TYPE;
-    endP_v   PLANNING.endPlanning%TYPE;
-    idS_v    SHOPPING.idShopping%TYPE;
+    nameP_v    PLANNING.namePlanning%TYPE;
+    descP_v    PLANNING.descPlanning%TYPE;
+    startP_v   PLANNING.startPlanning%TYPE;
+    endP_v     PLANNING.endPlanning%TYPE;
+    idS_v      SHOPPING.idShopping%TYPE;
     quantity_v STOCK.qtyAvailable%TYPE := 0;
-    count_v INTEGER := 0;
+    count_v    INTEGER                 := 0;
     /*stock_row STOCK%ROWTYPE;*/
 BEGIN
     DECLARE
         CURSOR ingPR_c IS
             SELECT RI.idIngredient, RI.quantity
             FROM RECIPE_INGREDIENT RI
-                INNER JOIN RECIPE R ON R.IDRECIPE = RI.IDRECIPE
-                INNER JOIN PLANNING_RECIPE PR ON PR.idRecipe = R.idRecipe
+                     INNER JOIN RECIPE R ON R.IDRECIPE = RI.IDRECIPE
+                     INNER JOIN PLANNING_RECIPE PR ON PR.idRecipe = R.idRecipe
             WHERE PR.idPlanning = idP;
         /*CURSOR ingS_c IS
             SELECT S.idIngredient, S.qtyAvailable
@@ -169,7 +167,7 @@ BEGIN
         INSERT INTO USERS_SHOPPING VALUES (idU, idS_v);
 
         SELECT count(*) INTO count_v FROM USERS_PLANNING WHERE idUsers = idU AND idPlanning = idP;
-        IF(count_v = 0) THEN
+        IF (count_v = 0) THEN
             INSERT INTO USERS_PLANNING VALUES (idU, idP);
         ELSE
             count_v := 0;
@@ -187,14 +185,20 @@ BEGIN
                     quantity_v := stock_row.qtyAvailable;
                 END IF;*/
 
-                SELECT count(*) INTO count_v
+                SELECT count(*)
+                INTO count_v
                 FROM STOCK S
-                WHERE S.idIngredient = ingPR_v.idIngredient AND S.idUsers = idU AND S.qtyAvailable > 0;
+                WHERE S.idIngredient = ingPR_v.idIngredient
+                  AND S.idUsers = idU
+                  AND S.qtyAvailable > 0;
 
                 IF (quantity_v > 0 AND ingPR_v.quantity > 0 AND count_v != 0) THEN
-                    SELECT S.qtyAvailable INTO quantity_v
+                    SELECT S.qtyAvailable
+                    INTO quantity_v
                     FROM STOCK S
-                    WHERE S.idIngredient = ingPR_v.idIngredient AND S.idUsers = idU AND S.qtyAvailable > 0;
+                    WHERE S.idIngredient = ingPR_v.idIngredient
+                      AND S.idUsers = idU
+                      AND S.qtyAvailable > 0;
 
                     ingPR_v.quantity := quantity_v - ingPR_v.quantity;
                     quantity_v := 0;
@@ -214,7 +218,19 @@ END;
 /
 SHOW ERRORS FUNCTION create_shopping ;
 
+/*
 BEGIN
     dbms_output.put_line(create_shopping(4, 2, SYSDATE));
 END;
-/
+/*/
+
+-- Définir une procédure qui crée une copie de recette où certains ingrédients ont été remplacés par d’autres équivalents et où le nombre de personnes peut-être différent de celui de la recette originale.
+
+CREATE OR REPLACE PROCEDURE copy_recipe(
+    idR RECIPE.idRecipe%TYPE,
+    nbP RECIPE.nbPers%TYPE,
+    idI INGREDIENT.idIngredient%TYPE
+) IS
+BEGIN
+
+END;
