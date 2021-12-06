@@ -139,7 +139,6 @@ CREATE OR REPLACE FUNCTION create_shopping(
     idS_v      SHOPPING.idShopping%TYPE;
     quantity_v STOCK.qtyAvailable%TYPE := 0;
     count_v    INTEGER                 := 0;
-    /*stock_row STOCK%ROWTYPE;*/
 BEGIN
     DECLARE
         CURSOR ingPR_c IS
@@ -148,14 +147,6 @@ BEGIN
                      INNER JOIN RECIPE R ON R.IDRECIPE = RI.IDRECIPE
                      INNER JOIN PLANNING_RECIPE PR ON PR.idRecipe = R.idRecipe
             WHERE PR.idPlanning = idP;
-        /*CURSOR ingS_c IS
-            SELECT S.idIngredient, S.qtyAvailable
-            FROM STOCK S
-                INNER JOIN INGREDIENT I on I.IDINGREDIENT = S.IDINGREDIENT
-                INNER JOIN RECIPE_INGREDIENT RI ON RI.idIngredient = I.idIngredient
-                INNER JOIN RECIPE R ON R.IDRECIPE = RI.IDRECIPE
-                INNER JOIN PLANNING_RECIPE PR ON PR.idRecipe = R.idRecipe
-            WHERE PR.idPlanning = idP AND S.idUsers = idU AND S.qtyAvailable > 0;*/
     BEGIN
         SELECT namePlanning, descPlanning, startPlanning, endPlanning
         INTO nameP_v, descP_v, startP_v, endP_v
@@ -173,17 +164,8 @@ BEGIN
             count_v := 0;
         END IF;
 
-        /*OPEN ingS_c;*/
-
         FOR ingPR_v IN ingPR_c
             LOOP
-
-                /*FETCH ingS_c INTO stock_row;
-                IF (stock_row%NOTFOUND) THEN
-                    quantity_v := 0;
-                ELSE
-                    quantity_v := stock_row.qtyAvailable;
-                END IF;*/
 
                 SELECT count(*)
                 INTO count_v
@@ -210,8 +192,6 @@ BEGIN
                 END IF;
             END LOOP;
 
-        /*CLOSE ingS_c;*/
-
         RETURN idS_v;
     END;
 END;
@@ -226,13 +206,61 @@ END;
 
 -- Définir une procédure qui crée une copie de recette où certains ingrédients ont été remplacés par d’autres équivalents et où le nombre de personnes peut-être différent de celui de la recette originale.
 
-/*
 CREATE OR REPLACE PROCEDURE copy_recipe(
     idR RECIPE.idRecipe%TYPE,
     nbP RECIPE.nbPers%TYPE,
     idI INGREDIENT.idIngredient%TYPE
 ) IS
+    recipe_v RECIPE%rowtype;
+    idR_v RECIPE.idRecipe%TYPE;
 BEGIN
+    DECLARE
+        CURSOR step_c IS
+            SELECT idStep, weigth, nameStep, descStep
+            FROM STEP
+            WHERE idRecipe = idR;
+        CURSOR media_c IS
+            SELECT nameMedia, descMedia, media
+            FROM MEDIA
+            WHERE idRecipe = idR;
+        CURSOR durR_c IS
+            SELECT idDuration, durRecipe
+            FROM RECIPE_DURATION
+            WHERE idRecipe = idR;
+        CURSOR durS_c IS
+            SELECT idDuration, durStep
+            FROM STEP_DURATION
+            INNER JOIN STEP S on S.IDSTEP = STEP_DURATION.IDSTEP
+            WHERE S.idRecipe = idR;
+    BEGIN
 
+    SELECT * INTO recipe_v FROM RECIPE WHERE idRecipe = idR;
+    INSERT INTO RECIPE VALUES (NULL, recipe_v.nameRecipe, recipe_v.author, recipe_v.descRecipe, recipe_v.difficulty, recipe_v.price, nbP, recipe_v.idUsers) RETURNING idRecipe INTO idR_v;
+
+    -- ingredient recette (x nbPers !!!)
+    -- qualite recette
+
+    -- media
+    FOR media_c IN media_c
+        LOOP
+            INSERT INTO MEDIA VALUES (NULL, media_c.nameMedia, media_c.descMedia, media_c.media, idR_v);
+        END LOOP;
+
+    -- recipe duration
+    FOR durR_v IN durR_c
+        LOOP
+            INSERT INTO RECIPE_DURATION VALUES (idR_v, durR_v.idDuration, durR_v.durRecipe);
+        END LOOP;
+
+    -- step & step duration ???
+    FOR step_v IN step_c
+        LOOP
+            INSERT INTO STEP VALUES (NULL, step_v.weigth, step_v.nameStep, step_v.descStep, idR_v);
+        END LOOP;
+
+    -- for each : edit_ingredient(idR_v, idI1, idI2);
+
+    END;
 END;
-SHOW ERRORS PROCEDURE copy_recipe ;*/
+/
+SHOW ERRORS PROCEDURE copy_recipe ;
