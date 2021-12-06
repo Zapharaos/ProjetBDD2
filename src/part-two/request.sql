@@ -15,16 +15,12 @@ WHERE
 ;
 
 -- La recette la plus souvent présente dans des plannings d’utilisateurs.
--- ne prend pas en compte la possibilite d avoir plusieurs recettes avec le meme nombre d occurrence
 
-SELECT
-       idRecipe,
+SELECT idRecipe,
        nbOccurrence
-FROM
-     (
-         SELECT
-             idRecipe,
-             count(*) as nbOccurrence
+FROM (
+         SELECT idRecipe,
+                count(*) as nbOccurrence
          FROM PLANNING_RECIPE
          GROUP BY idRecipe
          ORDER BY count(*) DESC
@@ -45,7 +41,7 @@ LEFT OUTER JOIN (
 ) nbR ON INGREDIENT.idIngredient = nbR.idIngredient
 LEFT OUTER JOIN (
     SELECT idIngredient, count(*) AS counter
-    FROM INGREDIENT_DIET
+    FROM INGREDIENT_CATEGORY
     GROUP BY idIngredient
 ) nbC ON INGREDIENT.idIngredient = nbC.idIngredient
 ORDER BY INGREDIENT.idIngredient ASC;
@@ -73,10 +69,10 @@ WHERE D.idDiet = 4;
 -- Pour chaque utilisateur, son login, son nom, son prénom, son adresse, son nombre de recette créé, son nombre d’ingrédients enregistrés, le nombre de recette qu’il a prévu de réaliser (la recette est dans son planning à une date postérieure à la date d’aujourd’hui).
 
 SELECT
-    users.login,
+/*    users.login,
     users.name,
     users.lastName,
-    users.address,
+    users.address,*/
     COALESCE(nbRc.counter, 0) AS nbRcreated,
     COALESCE(nbIs.counter, 0) AS nbIstock,
     COALESCE(nbRp.counter, 0) AS nbRplanned
@@ -89,6 +85,7 @@ LEFT OUTER JOIN (
 LEFT OUTER JOIN (
     SELECT idUsers, count(*) AS counter
     FROM STOCK
+    WHERE qtyAvailable > 0
     GROUP BY idUsers
 ) nbIs ON users.idUsers = nbIs.idUsers
 LEFT OUTER JOIN (

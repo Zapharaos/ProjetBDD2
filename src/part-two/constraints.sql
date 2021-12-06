@@ -38,7 +38,6 @@ END;
 SHOW ERRORS TRIGGER date_shopping ;
 
 -- La durée d’une recette est égale au moins au minimum de la durée de ses étapes.
--- il faudrait egalement placer un trigger lors de l'edition des durées d'une recette, mais je ne vais pas le faire par soucis de simplicité. En effet, j'estime que ce trigger est suffisant, de plus, la logique est la même
 
 CREATE OR REPLACE TRIGGER duration_recipe
     BEFORE INSERT OR UPDATE
@@ -89,10 +88,6 @@ END;
 SHOW ERRORS TRIGGER duration_recipe ;
 
 -- Le nombre de calorie d’une recette est similaire à celui de la somme des calories de ses ingrédients (+/- 20%).
--- mais les valeurs nutritionnelles peuvent changer à :
--- l'ajout d'un ingrédient (recipe_ingredient) ; la modification des qualités de la recette (recipe_quality) ; la modification des qualités d'un ingrédient (ingredient_quality)
--- ici, on partira du principe qu'un utilisateur ne peut pas renseigner les qualités globales d'une recette et quelles sont simplement recalculées à l'ajout d'un ingrédient, mais aussi que le nombre de calorie d'un ingredient est stable et ne devrait pas changer, pour 100 grammes
--- techniquement, il faudrait tout de même réaliser ces triggers mais par soucis de simplicité, j'estime que le trigger que j'ai réalisé est suffisant, la logique est plus ou moins la même pour ceux (les autres) que j'ai suggéré
 
 CREATE OR REPLACE TRIGGER calories_recipe
     BEFORE INSERT OR UPDATE
@@ -157,10 +152,6 @@ BEGIN
 END;
 /
 SHOW ERRORS TRIGGER remove_shopping ;
-
--- utilisation de scheduler pour tester quotidiennement => pas les droits donc je check betement à chaque update des tables
--- avec cette méthode, techniquement, il faudrait ajouter les checks BEOFRE INSERT sur RECIPE_PLANNING, SHOPPING_INGREDIENT et SHOPPING_PLANNING
--- mais je ne vais pas le faire par soucis de simplicité, car j'estime que les triggers que j'ai realise ici suffisent et que la logique serait de toute facon la meme
 
 CREATE OR REPLACE TRIGGER check_end_planning
     BEFORE UPDATE

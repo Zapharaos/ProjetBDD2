@@ -71,7 +71,6 @@ END;
 /*/
 
 -- Définir une fonction qui retourne un booléen si la recette ne contient que des ingrédients valides pour un certain régime (« végétarien », « sans-gluten », …).
--- pas le plus optimisé j'imagine, j'attends une réponse du prof de TP pour trouver un moyen de verifier que chaque ingredient d'une même recette respecte un certain regime
 
 CREATE OR REPLACE FUNCTION check_diet(
     idR RECIPE.idRecipe%TYPE,
@@ -94,8 +93,6 @@ BEGIN
     SELECT count(*)
     INTO countAll_v
     FROM RECIPE_INGREDIENT RI
-             INNER JOIN INGREDIENT I on RI.idIngredient = I.idIngredient
-             INNER JOIN INGREDIENT_DIET D on D.idIngredient = I.idIngredient
     WHERE RI.idRecipe = idR;
 
     IF (countAll_v = countDiet_v) THEN
@@ -123,8 +120,6 @@ END;
 /*/
 
 -- Définir une fonction qui génère une liste d’ingrédients à acheter. La liste d’ingrédient sera générée pour un utilisateur, à partir d’un planning de recette à réaliser, une liste d’ingrédients disponibles et la date estimée des achats.
--- chaque utilisateur possède une unique liste d'ingrédient disponible, un unique stock, il ne sera logiquement pas renseigné dans les paramètres de cette fonction
--- pour la date des listes de courses je prévoyais de conserver les mêmes dates que pour le planning correspondant, mais je change ici pour respecter la consigne
 
 CREATE OR REPLACE FUNCTION create_shopping(
     idU USERS.idUsers%TYPE,
@@ -206,7 +201,7 @@ END;
 
 -- Définir une procédure qui crée une copie de recette où certains ingrédients ont été remplacés par d’autres équivalents et où le nombre de personnes peut-être différent de celui de la recette originale.
 
-CREATE OR REPLACE PROCEDURE copy_recipe(
+/*CREATE OR REPLACE PROCEDURE copy_recipe(
     idR RECIPE.idRecipe%TYPE,
     nbP RECIPE.nbPers%TYPE,
     idI INGREDIENT.idIngredient%TYPE
@@ -263,4 +258,4 @@ BEGIN
     END;
 END;
 /
-SHOW ERRORS PROCEDURE copy_recipe ;
+SHOW ERRORS PROCEDURE copy_recipe ;*/
