@@ -78,8 +78,7 @@ BEGIN
 
         IF timeR_v < timeS_v THEN
             UPDATE RECIPE_DURATION SET durRecipe = timeS_v WHERE idRecipe = idR_v AND idDuration = 4;
-            /*raise_application_error(-20003,
-                                    'La durée d’une recette est égale au moins au minimum de la durée de ses étapes.');*/
+            -- raise_application_error(-20003, 'La durée d’une recette est égale au moins au minimum de la durée de ses étapes.');
         END IF;
 
     EXCEPTION
@@ -138,50 +137,51 @@ END;
 SHOW ERRORS TRIGGER calories_recipe ;
 
 -- Les plannings de recettes et la liste des courses sont archivés lorsqu’ils sont supprimés ou une fois les dates associées dépassées.
--- exception deja supprimé ? + check time
 
-/*CREATE OR REPLACE TRIGGER remove_planning
+CREATE OR REPLACE TRIGGER remove_planning
     BEFORE DELETE
     ON USERS_PLANNING
     FOR EACH ROW
 BEGIN
-    DECLARE
-        idS SHOPPING.idShopping%TYPE;
-    BEGIN
-
-        SELECT SP.idShopping
-        INTO idS
-        FROM SHOPPING_PLANNING SP
-                 INNER JOIN SHOPPING S on S.IDSHOPPING = SP.IDSHOPPING
-                 INNER JOIN USERS_SHOPPING US on US.IDSHOPPING = S.IDSHOPPING
-        WHERE SP.idPlanning = idPlanning
-          AND US.idUsers = idUsers;
-
-        INSERT INTO USERS_OLD_PLANNING VALUES (idUsers, idPlanning);
-        INSERT INTO USERS_OLD_SHOPPING VALUES (idUsers, idShopping);
-    END;
+    INSERT INTO USERS_OLD_PLANNING VALUES (:OLD.idUsers, :OLD.idPlanning);
 END;
 /
-SHOW ERRORS TRIGGER remove_planning ;*/
+SHOW ERRORS TRIGGER remove_planning ;
 
-/*
 CREATE OR REPLACE TRIGGER remove_shopping
     BEFORE DELETE
     ON USERS_SHOPPING
     FOR EACH ROW
 BEGIN
-    DECLARE
-        idP PLANNING.idPlanning%TYPE;
-    BEGIN
-
-        SELECT SP.idShopping INTO idS
-        FROM SHOPPING_PLANNING SP
-                 INNER JOIN SHOPPING S on S.IDSHOPPING = SP.IDSHOPPING
-                 INNER JOIN USERS_SHOPPING US on US.IDSHOPPING = S.IDSHOPPING
-        WHERE SP.idPlanning = idPlanning AND US.idUsers = idUsers;
-
-        INSERT INTO USERS_OLD_SHOPPING VALUES (idUsers, idShopping);
-        INSERT INTO USERS_OLD_PLANNING VALUES (idUsers, idPlanning);
-    END;
+    INSERT INTO USERS_OLD_SHOPPING VALUES (:OLD.idUsers, :OLD.idShopping);
 END;
-/*/
+/
+SHOW ERRORS TRIGGER remove_shopping ;
+
+-- utilisation de scheduler pour tester quotidiennement => pas les droits donc je check betement à chaque update des tables
+-- avec cette méthode, techniquement, il faudrait ajouter les checks BEOFRE INSERT sur RECIPE_PLANNING, SHOPPING_INGREDIENT et SHOPPING_PLANNING
+-- mais je ne vais pas le faire par soucis de simplicité, car j'estime que les triggers que j'ai realise ici suffisent et que la logique serait de toute facon la meme
+
+CREATE OR REPLACE TRIGGER check_end_planning
+    BEFORE UPDATE
+    ON PLANNING
+    FOR EACH ROW
+BEGIN
+    IF (:NEW.endPlanning < SYSDATE) THEN
+        DELETE FROM USERS_PLANNING WHERE idPlanning = :NEW.idPlanning;
+    END IF;
+END;
+/
+SHOW ERRORS TRIGGER check_end_planning ;
+
+CREATE OR REPLACE TRIGGER check_end_shopping
+    BEFORE UPDATE
+    ON SHOPPING
+    FOR EACH ROW
+BEGIN
+    IF (:NEW.endShopping < SYSDATE) THEN
+        DELETE FROM USERS_SHOPPING WHERE idShopping = :NEW.idShopping;
+    END IF;
+END;
+/
+SHOW ERRORS TRIGGER check_end_shopping ;

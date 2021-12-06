@@ -42,7 +42,6 @@ INSERT INTO step_duration VALUES (21, 2, 50);
 SELECT durRecipe FROM RECIPE_DURATION WHERE idRecipe = 5 AND idDuration = 4;
 
 -- Le nombre de calorie d’une recette est similaire à celui de la somme des calories de ses ingrédients (+/- 20%).
--- update value au lieu de raise ?
 
 SELECT SUM(IQ.qtyQuality * RI.quantity)
 FROM INGREDIENT_QUALITY IQ
@@ -64,4 +63,35 @@ WHERE idRecipe = 1
   AND idQuality = 1;
 
 -- Les plannings de recettes et la liste des courses sont archivés lorsqu’ils sont supprimés ou une fois les dates associées dépassées.
--- exception deja supprimé ? + check time
+
+INSERT INTO users VALUES (NULL, 'test', 'test@example.com', '6eb161adfa62b9d2d02f0d4acdd2f26daa989026088725c1ba27016c56788b11', 'test', 'test', '2274 test Road');
+INSERT INTO USERS_PLANNING VALUES (5, 1);
+INSERT INTO USERS_PLANNING VALUES (5, 2);
+INSERT INTO USERS_PLANNING VALUES (5, 3);
+INSERT INTO USERS_SHOPPING VALUES (5, 1);
+INSERT INTO USERS_SHOPPING VALUES (5, 2);
+INSERT INTO USERS_SHOPPING VALUES (5, 3);
+
+-- test planning drop
+SELECT idPlanning AS idP_active FROM USERS_PLANNING WHERE idUsers = 5;
+SELECT idPlanning as idP_archive FROM USERS_OLD_PLANNING WHERE idUsers = 5;
+DELETE FROM USERS_PLANNING WHERE idPlanning = 1;
+SELECT idPlanning AS idP_active FROM USERS_PLANNING WHERE idUsers = 5;
+SELECT idPlanning as idP_archive FROM USERS_OLD_PLANNING WHERE idUsers = 5;
+
+-- test shopping drop
+SELECT idShopping AS idS_active FROM USERS_SHOPPING WHERE idUsers = 5;
+SELECT idShopping as idS_archive FROM USERS_OLD_SHOPPING WHERE idUsers = 5;
+DELETE FROM USERS_SHOPPING WHERE idShopping = 1;
+SELECT idShopping AS idS_active FROM USERS_SHOPPING WHERE idUsers = 5;
+SELECT idShopping as idS_archive FROM USERS_OLD_SHOPPING WHERE idUsers = 5;
+
+-- test planning date
+UPDATE PLANNING SET endPlanning = SYSDATE-1 WHERE idPlanning = 2;
+SELECT idPlanning AS idP_active FROM USERS_PLANNING WHERE idUsers = 5;
+SELECT idPlanning as idP_archive FROM USERS_OLD_PLANNING WHERE idUsers = 5;
+
+-- test shopping date
+UPDATE SHOPPING SET endShopping = SYSDATE-1 WHERE idShopping = 2;
+SELECT idShopping AS idS_active FROM USERS_SHOPPING WHERE idUsers = 5;
+SELECT idShopping as idS_archive FROM USERS_OLD_SHOPPING WHERE idUsers = 5;
