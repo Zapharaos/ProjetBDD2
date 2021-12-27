@@ -200,16 +200,25 @@ END;
 /*/
 
 -- Définir une procédure qui crée une copie de recette où certains ingrédients ont été remplacés par d’autres équivalents et où le nombre de personnes peut-être différent de celui de la recette originale.
+-- on pourrait utiliser un string (voir edit_recipe(), ligne 35) pour modifier une liste d'ingredients plutot qu'un unique ingredient
+-- + select ingredient aleatoire de meme categorie que l'ingredient dans recipe_ingredient : suppose que c'est fait manuellement ici
 
-/*CREATE OR REPLACE PROCEDURE copy_recipe(
+CREATE OR REPLACE PROCEDURE copy_recipe(
     idR RECIPE.idRecipe%TYPE,
     nbP RECIPE.nbPers%TYPE,
-    idI INGREDIENT.idIngredient%TYPE
+    idI_o INGREDIENT.idIngredient%TYPE,
+    idI_n INGREDIENT.idIngredient%TYPE
 ) IS
     recipe_v RECIPE%rowtype;
     idR_v RECIPE.idRecipe%TYPE;
+    nbQ INTEGER;
+    sumQ INGREDIENT_QUALITY.qtyQuality%TYPE;
 BEGIN
     DECLARE
+        CURSOR ingre_c IS
+            SELECT *
+            FROM RECIPE_INGREDIENT
+            WHERE idRecipe = idR;
         CURSOR step_c IS
             SELECT idStep, weigth, nameStep, descStep
             FROM STEP
@@ -223,39 +232,70 @@ BEGIN
             FROM RECIPE_DURATION
             WHERE idRecipe = idR;
         CURSOR durS_c IS
-            SELECT idDuration, durStep
+            SELECT idStep, idDuration, durStep
             FROM STEP_DURATION
             INNER JOIN STEP S on S.IDSTEP = STEP_DURATION.IDSTEP
             WHERE S.idRecipe = idR;
     BEGIN
 
+    -- get recipe informations and copy it
     SELECT * INTO recipe_v FROM RECIPE WHERE idRecipe = idR;
     INSERT INTO RECIPE VALUES (NULL, recipe_v.nameRecipe, recipe_v.author, recipe_v.descRecipe, recipe_v.difficulty, recipe_v.price, nbP, recipe_v.idUsers) RETURNING idRecipe INTO idR_v;
 
-    -- ingredient recette (x nbPers !!!)
-    -- qualite recette
-
-    -- media
-    FOR media_c IN media_c
+    -- copy ingredients
+    FOR ingre_v IN ingre_c
         LOOP
-            INSERT INTO MEDIA VALUES (NULL, media_c.nameMedia, media_c.descMedia, media_c.media, idR_v);
+            INSERT INTO RECIPE_INGREDIENT VALUES (idR_v, ingre_v.idIngredient, ingre_v.quantity / recipe_v.nbPers * nbP, ingre_v.idCategory);
         END LOOP;
 
-    -- recipe duration
+    -- copy medias
+    -- pour aller plus loin : permettre de modifier les images car pas les memes ingredients
+    FOR media_v IN media_c
+        LOOP
+            INSERT INTO MEDIA VALUES (NULL, media_v.nameMedia, media_v.descMedia, media_v.media, idR_v);
+        END LOOP;
+
+    -- copy recipe durations
+    -- pour aller plus loin : permettre de modifier les durees car pas les memes ingredients
     FOR durR_v IN durR_c
         LOOP
             INSERT INTO RECIPE_DURATION VALUES (idR_v, durR_v.idDuration, durR_v.durRecipe);
         END LOOP;
 
-    -- step & step duration ???
+    -- copy steps
     FOR step_v IN step_c
         LOOP
             INSERT INTO STEP VALUES (NULL, step_v.weigth, step_v.nameStep, step_v.descStep, idR_v);
         END LOOP;
 
-    -- for each : edit_ingredient(idR_v, idI1, idI2);
+    -- copy step duration
+    FOR durS_v IN durS_c
+        LOOP
+            INSERT INTO STEP_DURATION VALUES (durS_v.idStep, durS_v.idDuration, durS_v.idStep);
+        END LOOP;
+
+    -- set recipe quality :
+    -- pas certain que ca soit la meilleure maniere de le faire
+
+    SELECT COUNT(*) INTO nbQ FROM QUALITY;
+    FOR loop_counter IN nbQ
+        LOOP
+            SELECT SUM(IQ.qtyQuality * RI.quantity)
+            INTO sumQ
+            FROM INGREDIENT_QUALITY IQ
+                INNER JOIN INGREDIENT I on I.IDINGREDIENT = IQ.IDINGREDIENT
+                INNER JOIN RECIPE_INGREDIENT RI on RI.IDINGREDIENT = I.IDINGREDIENT
+            WHERE RI.idRecipe = idR AND IQ.idQuality = loop_counter;
+
+            INSERT INTO RECIPE_QUALITY VALUES (idR_v, loop_counter, sumQ);
+        END LOOP;
+
+
+    -- for each : ingredient qui est modifie
+    UPDATE RECIPE_INGREDIENT SET idIngredient = idI_n WHERE idRecipe = idR_v AND idIngredient = idI_o;
+    edit_ingredient(idR_v, idI_o, idI_n);
 
     END;
 END;
 /
-SHOW ERRORS PROCEDURE copy_recipe ;*/
+SHOW ERRORS PROCEDURE copy_recipe ;
