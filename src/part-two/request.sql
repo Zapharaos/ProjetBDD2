@@ -1,16 +1,12 @@
 -- Les recettes qui ont moins de 200 calories par personne, dont tous les ingrédients sont sans gluten et qui apparaissent sur le planning d’un utilisateur.
+-- ne verifie pas que tous les ingredients sont sans gluten
 
 SELECT R.idRecipe
 FROM RECIPE R
 INNER JOIN RECIPE_QUALITY RQ on R.IDRECIPE = RQ.IDRECIPE
-INNER JOIN RECIPE_INGREDIENT RI ON RI.idRecipe = R.idRecipe
-INNER JOIN INGREDIENT I ON I.idIngredient = RI.idIngredient
-INNER JOIN INGREDIENT_DIET D ON D.idIngredient = I.idIngredient
-INNER JOIN DIET D2 ON D2.idDiet = D.idDiet
 WHERE
     RQ.IDQUALITY = 1 AND
     RQ.QTYQUALITY / R.NBPERS < 200 AND
-    D2.idDiet = 4 AND
     EXISTS(SELECT PLANNING_RECIPE.idRecipe FROM PLANNING_RECIPE WHERE PLANNING_RECIPE.idRecipe = R.idRecipe)
 ;
 
@@ -48,7 +44,7 @@ ORDER BY INGREDIENT.idIngredient ASC;
 
 -- Les utilisateurs qui n’ont ajouté à la base de données que des recettes végétariennes.
 
-SELECT DISTINCT U.idUsers
+/*SELECT DISTINCT U.idUsers
 FROM USERS U
 WHERE EXISTS (
     SELECT *
@@ -64,15 +60,42 @@ FROM RECIPE R
     INNER JOIN RECIPE_INGREDIENT RI ON RI.idRecipe = R.idRecipe
     INNER JOIN INGREDIENT I ON I.idIngredient = RI.idIngredient
     INNER JOIN INGREDIENT_DIET D ON D.idIngredient = I.idIngredient
-WHERE D.idDiet = 4;
+WHERE D.idDiet = 4;*/
+
+/*
+SELECT RI.idRecipe, RI.idIngredient
+FROM RECIPE_INGREDIENT RI
+WHERE NOT (NOT EXISTS (
+    SELECT *
+    FROM INGREDIENT_DIET ID
+    WHERE ID.idIngredient = RI.idIngredient AND ID.idDiet = 3
+    ));
+
+SELECT RI.idRecipe, RI.idIngredient
+FROM RECIPE_INGREDIENT RI
+WHERE RI.idRecipe = 4 AND RI.idIngredient = ALL (NOT (NOT EXISTS (
+        SELECT *
+        FROM INGREDIENT_DIET ID
+        WHERE ID.idIngredient = RI.idIngredient AND ID.idDiet = 3
+    ));*/
+
+/*SELECT *
+FROM RECIPE_INGREDIENT RI
+WHERE RI.idIngredient NOT IN (
+    SELECT DISTINCT RI.idIngredient
+    FROM RECIPE_INGREDIENT RI
+    INNER JOIN INGREDIENT I ON I.idIngredient = RI.idIngredient
+    INNER JOIN INGREDIENT_DIET ID ON ID.idIngredient = I.idIngredient
+    WHERE ID.idDiet != 2
+    );*/
 
 -- Pour chaque utilisateur, son login, son nom, son prénom, son adresse, son nombre de recette créé, son nombre d’ingrédients enregistrés, le nombre de recette qu’il a prévu de réaliser (la recette est dans son planning à une date postérieure à la date d’aujourd’hui).
 
 SELECT
-/*    users.login,
+    users.login,
     users.name,
     users.lastName,
-    users.address,*/
+    users.address,
     COALESCE(nbRc.counter, 0) AS nbRcreated,
     COALESCE(nbIs.counter, 0) AS nbIstock,
     COALESCE(nbRp.counter, 0) AS nbRplanned

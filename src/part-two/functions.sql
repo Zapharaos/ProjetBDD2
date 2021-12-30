@@ -274,8 +274,12 @@ BEGIN
             INSERT INTO STEP_DURATION VALUES (durS_v.idStep, durS_v.idDuration, durS_v.idStep);
         END LOOP;
 
+    -- for each : ingredient qui est modifie
+    UPDATE RECIPE_INGREDIENT SET idIngredient = idI_n WHERE idRecipe = idR_v AND idIngredient = idI_o;
+    edit_ingredient(idR_v, idI_o, idI_n);
+
     -- set recipe quality :
-    -- pas certain que ca soit la meilleure maniere de le faire
+    -- pas certain que ca soit la meilleure maniere de le faire, pas tres clean selon moi
 
     SELECT COUNT(*) INTO nbQ FROM QUALITY;
     FOR loop_counter IN nbQ
@@ -289,11 +293,6 @@ BEGIN
 
             INSERT INTO RECIPE_QUALITY VALUES (idR_v, loop_counter, sumQ);
         END LOOP;
-
-
-    -- for each : ingredient qui est modifie
-    UPDATE RECIPE_INGREDIENT SET idIngredient = idI_n WHERE idRecipe = idR_v AND idIngredient = idI_o;
-    edit_ingredient(idR_v, idI_o, idI_n);
 
     END;
 END;
